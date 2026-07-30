@@ -1,0 +1,89 @@
+name: remitiq-market-service
+
+services:
+
+  # ==========================
+  # PostgreSQL Database
+  # ==========================
+
+  market-db:
+
+    image: postgres:16-alpine
+
+    container_name: remitiq-market-db
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - market_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - market-network
+
+
+  # ==========================
+  # Express API
+  # ==========================
+
+  market-service:
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+
+    container_name: remitiq-market-service
+
+    restart: unless-stopped
+
+    depends_on:
+      market-db:
+        condition: service_healthy
+
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      APP_NAME: ${APP_NAME}
+      APP_VERSION: ${APP_VERSION}
+      PORT: ${PORT}
+      DATABASE_URL: ${DATABASE_URL}
+      LOG_LEVEL: ${LOG_LEVEL}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      FX_API_URL: ${FX_API_URL}
+      FX_API_KEY: ${FX_API_KEY}
+
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+    ports:
+      - "4001:4001"
+
+    networks:
+      - market-network
+
+
+networks:
+
+  market-network:
+    driver: bridge
+
+
+volumes:
+
+  market_postgres_data:
