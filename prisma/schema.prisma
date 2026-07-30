@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +7,129 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+/// A currency tracked by the system (e.g. USD, EUR, XAF).
+model Currency {
+  id       String  @id @default(uuid())
+  code     String  @unique // ISO 4217, e.g. "USD"
+  name     String
+  symbol   String?
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ratesAsBase  ExchangeRate[] @relation("BaseCurrency")
+  ratesAsQuote ExchangeRate[] @relation("QuoteCurrency")
+
+  @@map("currencies")
+}
+
+/// An external FX data source (e.g. a specific API provider).
+model Provider {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  baseUrl  String  @map("base_url")
+  isActive Boolean @default(true) @map("is_active")
+  priority Int     @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  exchangeRates ExchangeRate[]
+
+  @@map("providers")
+}
+
+/// Current known rate for a currency pair from a given provider.
+model ExchangeRate {
+  id String @id @default(uuid())
+
+  baseCurrencyId  String   @map("base_currency_id")
+  baseCurrency    Currency @relation("BaseCurrency", fields: [baseCurrencyId], references: [id])
+
+  quoteCurrencyId String   @map("quote_currency_id")
+  quoteCurrency   Currency @relation("QuoteCurrency", fields: [quoteCurrencyId], references: [id])
+
+  providerId String   @map("provider_id")
+  provider   Provider @relation(fields: [providerId], references: [id])
+
+  rate      Decimal  @db.Decimal(20, 10)
+  fetchedAt DateTime @default(now()) @map("fetched_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([baseCurrencyId, quoteCurrencyId, providerId])
+  @@index([baseCurrencyId, quoteCurrencyId])
+  @@map("exchange_rates")
+}
+
+/// Append-only snapshot of a rate at a point in time, for trend analysis.
+model ExchangeRateHistory {
+  id String @id @default(uuid())
+
+  baseCurrencyId  String @map("base_currency_id")
+  quoteCurrencyId String @map("quote_currency_id")
+  providerId      String @map("provider_id")
+
+  rate       Decimal  @db.Decimal(20, 10)
+  recordedAt DateTime @default(now()) @map("recorded_at")
+
+  @@index([baseCurrencyId, quoteCurrencyId, recordedAt])
+  @@map("exchange_rate_history")
+}
+
+/// A user-defined rule to be notified when a rate crosses a threshold.
+/// `userId` references a user in the Household Service — no FK, since
+/// services never share databases (see section 13/17 of the master spec).
+model AlertRule {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  baseCurrencyId  String @map("base_currency_id")
+  quoteCurrencyId String @map("quote_currency_id")
+
+  condition AlertCondition
+  threshold Decimal        @db.Decimal(20, 10)
+
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  events AlertEvent[]
+
+  @@index([userId])
+  @@index([baseCurrencyId, quoteCurrencyId])
+  @@map("alert_rules")
+}
+
+/// A record of an alert rule being triggered and (attempted to be) notified.
+model AlertEvent {
+  id          String @id @default(uuid())
+  alertRuleId String @map("alert_rule_id")
+
+  alertRule AlertRule @relation(fields: [alertRuleId], references: [id])
+
+  triggeredRate Decimal  @map("triggered_rate") @db.Decimal(20, 10)
+  triggeredAt   DateTime @default(now()) @map("triggered_at")
+
+  notifiedAt DateTime? @map("notified_at")
+  status     AlertEventStatus @default(PENDING)
+
+  @@index([alertRuleId])
+  @@map("alert_events")
+}
+
+enum AlertCondition {
+  GREATER_THAN_OR_EQUAL
+  LESS_THAN_OR_EQUAL
+}
+
+enum AlertEventStatus {
+  PENDING
+  NOTIFIED
+  FAILED
 }
