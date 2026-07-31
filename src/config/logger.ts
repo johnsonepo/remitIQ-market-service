@@ -1,4 +1,4 @@
-import { env } from './env.js';
+import { env } from "./env.js";
 
 /**
  * Logger configuration.
@@ -16,7 +16,7 @@ export const loggerConfig = {
   /**
    * Pretty-print logs during development.
    */
-  pretty: env.NODE_ENV === 'development',
+  pretty: env.NODE_ENV === "development",
 
   /**
    * Include timestamps in every log entry.

@@ -23,6 +23,9 @@ model Currency {
   ratesAsBase  ExchangeRate[] @relation("BaseCurrency")
   ratesAsQuote ExchangeRate[] @relation("QuoteCurrency")
 
+  communityRatesAsBase  CommunityRate[] @relation("CommunityBaseCurrency")
+  communityRatesAsQuote CommunityRate[] @relation("CommunityQuoteCurrency")
+
   @@map("currencies")
 }
 
@@ -81,6 +84,36 @@ model ExchangeRateHistory {
   @@map("exchange_rate_history")
 }
 
+/// A user-submitted rate observation, typically representing informal/
+/// street/parallel-market rates that can differ from official API rates
+/// (e.g. UAE street-rate exchanges). Unlike ExchangeRate, many users can
+/// submit for the same currency pair — there is no one-per-pair
+/// constraint, since each submission is an independent observation.
+/// `userId` references a user in the Household Service — no FK, since
+/// services never share databases (see section 13/17 of the master spec).
+model CommunityRate {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  baseCurrencyId String   @map("base_currency_id")
+  baseCurrency   Currency @relation("CommunityBaseCurrency", fields: [baseCurrencyId], references: [id])
+
+  quoteCurrencyId String   @map("quote_currency_id")
+  quoteCurrency   Currency @relation("CommunityQuoteCurrency", fields: [quoteCurrencyId], references: [id])
+
+  rate     Decimal @db.Decimal(20, 10)
+  location String? // e.g. "Dubai", "Abu Dhabi" — where the rate was observed
+
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([baseCurrencyId, quoteCurrencyId])
+  @@index([userId])
+  @@map("community_rates")
+}
+
 /// A user-defined rule to be notified when a rate crosses a threshold.
 /// `userId` references a user in the Household Service — no FK, since
 /// services never share databases (see section 13/17 of the master spec).
@@ -113,10 +146,10 @@ model AlertEvent {
 
   alertRule AlertRule @relation(fields: [alertRuleId], references: [id])
 
-  triggeredRate Decimal  @map("triggered_rate") @db.Decimal(20, 10)
-  triggeredAt   DateTime @default(now()) @map("triggered_at")
+  triggeredRate Decimal          @map("triggered_rate") @db.Decimal(20, 10)
+  triggeredAt   DateTime         @default(now()) @map("triggered_at")
 
-  notifiedAt DateTime? @map("notified_at")
+  notifiedAt DateTime?        @map("notified_at")
   status     AlertEventStatus @default(PENDING)
 
   @@index([alertRuleId])

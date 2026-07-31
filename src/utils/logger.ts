@@ -1,6 +1,6 @@
-import pino from 'pino';
+import pino from "pino";
 
-import { loggerConfig } from '../config/index.js';
+import { loggerConfig } from "../config/index.js";
 
 /**
  * Global application logger.
@@ -18,11 +18,11 @@ export const logger = pino({
 
   ...(loggerConfig.pretty && {
     transport: {
-      target: 'pino-pretty',
+      target: "pino-pretty",
       options: {
         colorize: true,
-        translateTime: 'SYS:standard',
-        ignore: 'pid,hostname',
+        translateTime: "SYS:standard",
+        ignore: "pid,hostname",
       },
     },
   }),

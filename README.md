@@ -24,11 +24,11 @@ The purpose of this service is to help users make better remittance decisions by
 
 Rather than moving money, this service provides intelligence that answers questions such as:
 
-* What is the current exchange rate?
-* Is today a good day to send money?
-* Has the rate improved over the last week?
-* When should users receive exchange rate alerts?
-* What are historical trends?
+- What is the current exchange rate?
+- Is today a good day to send money?
+- Has the rate improved over the last week?
+- When should users receive exchange rate alerts?
+- What are historical trends?
 
 ---
 
@@ -36,13 +36,13 @@ Rather than moving money, this service provides intelligence that answers questi
 
 This service is responsible for:
 
-* Collecting exchange rates from external providers
-* Storing historical exchange rates
-* Maintaining supported currencies
-* Calculating exchange rate trends
-* Processing exchange rate alerts
-* Providing market-related REST APIs
-* Supplying market data to other RemitIQ services
+- Collecting exchange rates from external providers
+- Storing historical exchange rates
+- Maintaining supported currencies
+- Calculating exchange rate trends
+- Processing exchange rate alerts
+- Providing market-related REST APIs
+- Supplying market data to other RemitIQ services
 
 ---
 
@@ -50,14 +50,14 @@ This service is responsible for:
 
 This service **does not** manage:
 
-* User accounts
-* Authentication
-* Household management
-* Budgets
-* Remittance transactions
-* Analytics based on household spending
-* Payment processing
-* Money transfers
+- User accounts
+- Authentication
+- Household management
+- Budgets
+- Remittance transactions
+- Analytics based on household spending
+- Payment processing
+- Money transfers
 
 Those responsibilities belong to other services within the ecosystem.
 
@@ -172,10 +172,10 @@ Maintain supported currencies.
 
 Examples:
 
-* USD
-* EUR
-* GBP
-* XAF
+- USD
+- EUR
+- GBP
+- XAF
 
 ---
 
@@ -195,10 +195,10 @@ Maintain historical exchange rates for trend analysis.
 
 Calculate:
 
-* Daily trends
-* Weekly trends
-* Monthly trends
-* Percentage changes
+- Daily trends
+- Weekly trends
+- Monthly trends
+- Percentage changes
 
 ---
 
@@ -218,9 +218,9 @@ USD/XAF ≥ 650
 
 Expose exchange rate data to:
 
-* Web application
-* Mobile application
-* Household Service
+- Web application
+- Mobile application
+- Household Service
 
 ---
 
@@ -310,11 +310,11 @@ Other services must use the public REST API.
 
 The initial models include:
 
-* Currency
-* ExchangeRate
-* RateHistory
-* AlertRule
-* AlertEvent
+- Currency
+- ExchangeRate
+- RateHistory
+- AlertRule
+- AlertEvent
 
 Additional models may be introduced as the application evolves.
 
@@ -372,9 +372,9 @@ Mobile Application
 
 Communication format:
 
-* HTTPS
-* JSON
-* REST
+- HTTPS
+- JSON
+- REST
 
 ---
 
@@ -430,10 +430,10 @@ Logs are intended to be compatible with centralized logging solutions such as Lo
 
 Logging levels include:
 
-* info
-* warn
-* error
-* debug
+- info
+- warn
+- error
+- debug
 
 ---
 
@@ -443,10 +443,10 @@ A centralized error handler will ensure consistent API responses.
 
 Errors will include:
 
-* HTTP status code
-* Error message
-* Validation details (when applicable)
-* Correlation ID (future enhancement)
+- HTTP status code
+- Error message
+- Validation details (when applicable)
+- Correlation ID (future enhancement)
 
 ---
 
@@ -454,13 +454,13 @@ Errors will include:
 
 The service will follow security best practices including:
 
-* Helmet security headers
-* CORS configuration
-* Request validation
-* Environment-based configuration
-* Parameterized database queries
-* Secure logging
-* Rate limiting (future enhancement)
+- Helmet security headers
+- CORS configuration
+- Request validation
+- Environment-based configuration
+- Parameterized database queries
+- Secure logging
+- Rate limiting (future enhancement)
 
 ---
 
@@ -468,9 +468,9 @@ The service will follow security best practices including:
 
 Testing will include:
 
-* Unit tests
-* Integration tests
-* API endpoint tests
+- Unit tests
+- Integration tests
+- API endpoint tests
 
 Automated tests will run in GitHub Actions before deployment.
 
@@ -530,13 +530,13 @@ Pipeline stages:
 
 The service is designed to run on:
 
-* Docker
-* VPS
-* AWS
-* Railway
-* Render
-* Azure
-* Google Cloud
+- Docker
+- VPS
+- AWS
+- Railway
+- Render
+- Azure
+- Google Cloud
 
 The deployment platform is independent of the application architecture.
 
@@ -602,10 +602,10 @@ Performance optimization
 
 Before contributing:
 
-* Follow the coding standards.
-* Write tests for new functionality.
-* Update documentation when necessary.
-* Ensure linting and tests pass before submitting changes.
+- Follow the coding standards.
+- Write tests for new functionality.
+- Update documentation when necessary.
+- Ensure linting and tests pass before submitting changes.
 
 ---
 
@@ -619,9 +619,9 @@ This project is licensed under the MIT License.
 
 The Market Service is one of four independent applications within the RemitIQ ecosystem.
 
-* **remitIQ-market-service** — Exchange rates, trends, alerts.
-* **remitIQ-household-service** — Authentication, households, budgets, remittance records.
-* **remitIQ-web** — Web dashboard consuming backend APIs.
-* **remitIQ-mobile** — Mobile application consuming backend APIs.
+- **remitIQ-market-service** — Exchange rates, trends, alerts.
+- **remitIQ-household-service** — Authentication, households, budgets, remittance records.
+- **remitIQ-web** — Web dashboard consuming backend APIs.
+- **remitIQ-mobile** — Mobile application consuming backend APIs.
 
 Each application is independently developed, versioned, deployed, and documented. Communication occurs exclusively through versioned REST APIs, ensuring loose coupling and allowing each service to evolve without requiring direct access to another service's codebase or database.

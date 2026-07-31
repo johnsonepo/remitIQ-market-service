@@ -1,6 +1,6 @@
-import 'dotenv/config';
+import "dotenv/config";
 
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Application environment schema.
@@ -17,7 +17,7 @@ const envSchema = z.object({
    |--------------------------------------------------------------------------
    */
 
-  NODE_ENV: z.enum(['development', 'test', 'production']),
+  NODE_ENV: z.enum(["development", "test", "production"]),
 
   PORT: z.coerce.number().int().positive(),
 
@@ -39,14 +39,7 @@ const envSchema = z.object({
    |--------------------------------------------------------------------------
    */
 
-  LOG_LEVEL: z.enum([
-    'fatal',
-    'error',
-    'warn',
-    'info',
-    'debug',
-    'trace',
-  ]),
+  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]),
 
   /*
    |--------------------------------------------------------------------------

@@ -1,13 +1,19 @@
-import compression from 'compression';
-import cors from 'cors';
-import express from 'express';
-import helmet from 'helmet';
+import compression from "compression";
+import cors from "cors";
+import express from "express";
+import helmet from "helmet";
 
-import { env } from './config/env.js';
-import { errorMiddleware } from './middlewares/error.middleware.js';
-import { notFoundMiddleware } from './middlewares/not-found.middleware.js';
-import { requestLogger } from './middlewares/request-logger.middleware.js';
+import { env } from "./config/env.js";
+import { errorMiddleware } from "./middlewares/error.middleware.js";
+import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
+import { requestLogger } from "./middlewares/request-logger.middleware.js";
 
+/**
+ * Express application instance.
+ *
+ * This file configures the core middleware stack, security headers,
+ * routing, and error handling for the application.
+ */
 const app = express();
 
 /*
@@ -16,20 +22,26 @@ const app = express();
 |--------------------------------------------------------------------------
 */
 
+// Log incoming HTTP requests using Pino
 app.use(requestLogger);
 
+// Secure Express apps by setting various HTTP headers
 app.use(helmet());
 
+// Enable Cross-Origin Resource Sharing based on environment config
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
   }),
 );
 
+// Compress response bodies for all requests
 app.use(compression());
 
+// Parse incoming JSON payloads
 app.use(express.json());
 
+// Parse incoming URL-encoded payloads
 app.use(express.urlencoded({ extended: true }));
 
 /*
@@ -38,9 +50,14 @@ app.use(express.urlencoded({ extended: true }));
 |--------------------------------------------------------------------------
 */
 
-app.get('/health', (_, res) => {
+/**
+ * Health check endpoint.
+ *
+ * Returns the current status and metadata of the running service.
+ */
+app.get("/health", (_, res) => {
   res.json({
-    status: 'ok',
+    status: "ok",
     service: env.APP_NAME,
     version: env.APP_VERSION,
   });
@@ -52,8 +69,10 @@ app.get('/health', (_, res) => {
 |--------------------------------------------------------------------------
 */
 
+// Catch-all route handler for unmatched endpoints
 app.use(notFoundMiddleware);
 
+// Global error handling middleware
 app.use(errorMiddleware);
 
 export default app;
