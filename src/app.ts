@@ -7,6 +7,7 @@ import { env } from "./config/env.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
 import { requestLogger } from "./middlewares/request-logger.middleware.js";
+import { apiRoutes } from "./routes/index.js";
 
 /**
  * Express application instance.
@@ -62,6 +63,15 @@ app.get("/health", (_, res) => {
     version: env.APP_VERSION,
   });
 });
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
+// Versioned API routes (see master spec section 15: /api/v1/...)
+app.use("/api/v1", apiRoutes);
 
 /*
 |--------------------------------------------------------------------------
