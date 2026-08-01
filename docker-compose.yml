@@ -66,6 +66,12 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN}
       FX_API_URL: ${FX_API_URL}
       FX_API_KEY: ${FX_API_KEY}
+      # Force Node to prefer IPv4 when resolving DNS. Some Docker
+      # network setups have broken/unroutable IPv6 connectivity,
+      # causing outbound HTTPS requests (e.g. to ExchangeRate-API) to
+      # time out via axios/Node's http client even though IPv4 works
+      # fine (confirmed via wget, which handles the fallback itself).
+      NODE_OPTIONS: --dns-result-order=ipv4first
 
     volumes:
       - .:/app

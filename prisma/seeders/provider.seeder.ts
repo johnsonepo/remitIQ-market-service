@@ -1,4 +1,5 @@
 import { prisma } from '../../src/clients/prisma.client.js';
+import { env } from '../../src/config/env.js';
 import type { ProviderModel } from '../../generated/prisma/models/Provider.js';
 
 /**
@@ -12,7 +13,10 @@ import type { ProviderModel } from '../../generated/prisma/models/Provider.js';
  * unlike a Provider which has one current rate per pair.
  *
  * - `ExchangeRate-API`: the primary external FX data source used in
- *   production (priority 0, the lowest/most-preferred value).
+ *   production (priority 0, the lowest/most-preferred value). Its
+ *   baseUrl is sourced from env.FX_API_URL rather than hardcoded
+ *   here, so it stays in sync with the single source of truth used
+ *   by the actual API client (exchange-rate-api.client.ts).
  * - `Test Provider`: a placeholder provider for local development and
  *   automated tests, so test code doesn't need to hit a real external
  *   API. Seeded as inactive (`isActive: false`) so it's never
@@ -29,7 +33,7 @@ export async function seedProviders(): Promise<ProviderModel[]> {
     [
       {
         name: 'ExchangeRate-API',
-        baseUrl: 'https://api.exchangerate-api.com/v4',
+        baseUrl: env.FX_API_URL,
         priority: 0,
         isActive: true,
       },
