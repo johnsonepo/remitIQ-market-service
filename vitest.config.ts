@@ -4,8 +4,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: false,
+    globalSetup: ['./tests/global-setup.ts'],
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts'],
-    testTimeout: 15_000, // integration tests hitting the DB need more than the 5s default
+    testTimeout: 15_000,
   },
 });
