@@ -4,6 +4,7 @@ import { providerRepository } from '../repositories/provider.repository.js';
 import { prisma } from '../clients/prisma.client.js';
 import { logger } from '../utils/logger.js';
 import { fxSyncCounter } from '../utils/metrics.js';
+import { checkAlertsForRate } from '../services/alert-check.service.js';
 
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1_000;
@@ -147,6 +148,26 @@ export async function runFxSync(): Promise<void> {
         logger.info({ pair: `${currency.code} -> XAF`, rate: rateToXaf }, 'FX Synchronization: rate updated');
         successCount++;
         fxSyncCounter.inc({ currency: currency.code, result: 'success' });
+
+        // Check active alert rules for this pair against the freshly
+        // updated rate, creating AlertEvent records for any that are
+        // triggered. Failures here are logged but don't affect the
+        // sync run's own success/failure counts, since the rate
+        // update itself already succeeded.
+        try {
+          const triggeredCount = await checkAlertsForRate(currency.id, xaf.id, rateToXaf);
+          if (triggeredCount > 0) {
+            logger.info(
+              { pair: `${currency.code} -> XAF`, triggeredCount },
+              'FX Synchronization: alert rules triggered',
+            );
+          }
+        } catch (alertError) {
+          logger.error(
+            { err: alertError, currency: currency.code },
+            'FX Synchronization: alert check failed',
+          );
+        }
       } catch (error) {
         logger.error({ err: error, currency: currency.code }, 'FX Synchronization: failed after all retries');
         failureCount++;
