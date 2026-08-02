@@ -5,7 +5,7 @@ import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
   {
-    ignores: ["node_modules", "dist", "coverage"],
+    ignores: ["node_modules", "dist", "coverage", "generated", "eslint.config.js"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -34,6 +34,16 @@ export default tseslint.config(
       // Cleaner code
       semi: ["error", "always"],
       quotes: ["error", "double"],
+    },
+  },
+  {
+    // Relax 'any' restrictions in test files, where loosely-typed
+    // mocks (e.g. `(fn as any).mockResolvedValue(...)`) are common
+    // and don't compromise real type safety, since the actual
+    // application code under test remains fully typed.
+    files: ["tests/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
   prettier,

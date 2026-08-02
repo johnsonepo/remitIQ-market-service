@@ -1,5 +1,4 @@
-import { prisma } from '../clients/prisma.client.js';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Generic base repository providing common CRUD operations over any
  * Prisma model delegate (e.g. prisma.currency, prisma.exchangeRate).
@@ -22,31 +21,54 @@ export abstract class BaseRepository<
 > {
   protected abstract readonly model: TDelegate;
 
-  findById(id: string, args?: Omit<Parameters<TDelegate['findUnique']>[0], 'where'>) {
-    return this.model.findUnique({ where: { id }, ...args });
+  findById(
+    id: string,
+    args?: Omit<Parameters<TDelegate['findUnique']>[0], 'where'>,
+  ): ReturnType<TDelegate['findUnique']> {
+    return this.model.findUnique({
+      where: { id },
+      ...args,
+    }) as ReturnType<TDelegate['findUnique']>;
   }
 
-  findUnique(args: Parameters<TDelegate['findUnique']>[0]) {
-    return this.model.findUnique(args);
+  findUnique(
+    args: Parameters<TDelegate['findUnique']>[0],
+  ): ReturnType<TDelegate['findUnique']> {
+    return this.model.findUnique(args) as ReturnType<TDelegate['findUnique']>;
   }
 
-  findMany(args?: Parameters<TDelegate['findMany']>[0]) {
-    return this.model.findMany(args);
+  findMany(
+    args?: Parameters<TDelegate['findMany']>[0],
+  ): ReturnType<TDelegate['findMany']> {
+    return this.model.findMany(args) as ReturnType<TDelegate['findMany']>;
   }
 
-  create(args: Parameters<TDelegate['create']>[0]) {
-    return this.model.create(args);
+  create(
+    args: Parameters<TDelegate['create']>[0],
+  ): ReturnType<TDelegate['create']> {
+    return this.model.create(args) as ReturnType<TDelegate['create']>;
   }
 
-  update(id: string, args: Omit<Parameters<TDelegate['update']>[0], 'where'>) {
-    return this.model.update({ where: { id }, ...args });
+  update(
+    id: string,
+    args: Omit<Parameters<TDelegate['update']>[0], 'where'>,
+  ): ReturnType<TDelegate['update']> {
+    return this.model.update({
+      where: { id },
+      ...args,
+    }) as ReturnType<TDelegate['update']>;
   }
 
-  delete(id: string) {
-    return this.model.delete({ where: { id } });
+  delete(id: string): ReturnType<TDelegate['delete']> {
+    return this.model.delete({
+      where: { id },
+    }) as ReturnType<TDelegate['delete']>;
   }
 
-  count(args?: Parameters<TDelegate['count']>[0]) {
-    return this.model.count(args);
+  count(
+    args?: Parameters<TDelegate['count']>[0],
+  ): ReturnType<TDelegate['count']> {
+    return this.model.count(args) as ReturnType<TDelegate['count']>;
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

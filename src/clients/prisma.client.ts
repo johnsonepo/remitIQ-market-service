@@ -9,7 +9,6 @@ import { databaseConfig } from '../config/index.js';
  * when referencing `global.__prisma`.
  */
 declare global {
-  // eslint-disable-next-line no-var
   var __prisma: PrismaClient | undefined;
 }
 

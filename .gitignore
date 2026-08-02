@@ -76,4 +76,11 @@ Thumbs.db
 # Docker
 # ============================
 
+
 docker-compose.override.yml
+
+# ============================
+# Other files
+# ============================
+
+development-roadmap.txt
