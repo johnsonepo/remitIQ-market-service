@@ -5,10 +5,12 @@ import helmet from "helmet";
 
 import { env } from "./config/env.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
+import { metricsMiddleware } from "./middlewares/metrics.middleware.js";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
 import { requestLogger } from "./middlewares/request-logger.middleware.js";
 import { apiRoutes } from "./routes/index.js";
 import { checkDatabaseConnection } from "./utils/health-check.util.js";
+import { metricsRegistry } from "./utils/metrics.js";
 
 /**
  * Express application instance.
@@ -26,6 +28,12 @@ const app = express();
 
 // Log incoming HTTP requests using Pino
 app.use(requestLogger);
+
+// Record HTTP request count and duration metrics for every request,
+// exposed later via GET /metrics for Prometheus scraping. Placed
+// early in the stack so it captures the full request lifecycle,
+// including time spent in later middleware.
+app.use(metricsMiddleware);
 
 // Secure Express apps by setting various HTTP headers
 app.use(helmet());
@@ -89,6 +97,29 @@ app.get("/health/ready", async (_, res) => {
       database: databaseConnected ? "ok" : "unreachable",
     },
   });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Metrics
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * Prometheus metrics endpoint.
+ *
+ * Exposes HTTP request counts/durations (via metricsMiddleware),
+ * default Node.js process metrics (memory, CPU, event loop lag, GC —
+ * collected automatically by prom-client), and business metrics like
+ * FX sync outcomes, in the Prometheus text exposition format.
+ *
+ * Not versioned under /api/v1 since it's an operational endpoint for
+ * infrastructure tooling, not a business API — matching the
+ * convention most Prometheus setups expect (/metrics at the root).
+ */
+app.get("/metrics", async (_, res) => {
+  res.set("Content-Type", metricsRegistry.contentType);
+  res.send(await metricsRegistry.metrics());
 });
 
 /*
