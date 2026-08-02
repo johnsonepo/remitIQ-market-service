@@ -6,8 +6,9 @@ import { alertEventRepository } from '../repositories/alert-event.repository.js'
 import { ApiResponse } from '../utils/api-response.js';
 import { ApiError } from '../utils/api-error.js';
 import type { CreateAlertRuleInput } from '../validators/alert-rule.validator.js';
+import type { Currency } from '../../generated/prisma/client.js';
 
-async function resolveCurrencyOrFail(code: string) {
+async function resolveCurrencyOrFail(code: string): Promise<Currency> {
   const currency = await currencyRepository.findByCode(code.toUpperCase());
   if (!currency) {
     throw ApiError.notFound(`Currency with code "${code}" not found`);
