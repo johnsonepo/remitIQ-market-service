@@ -3,6 +3,7 @@ import { currencyRepository } from '../repositories/currency.repository.js';
 import { providerRepository } from '../repositories/provider.repository.js';
 import { prisma } from '../clients/prisma.client.js';
 import { logger } from '../utils/logger.js';
+import { fxSyncCounter } from '../utils/metrics.js';
 
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1_000;
@@ -112,6 +113,7 @@ export async function runFxSync(): Promise<void> {
           logger.warn({ currency: currency.code }, 'FX Synchronization: XAF rate missing, skipping');
           failureCount++;
           failedCurrencies.push(currency.code);
+          fxSyncCounter.inc({ currency: currency.code, result: 'failure' });
           continue;
         }
 
@@ -144,10 +146,12 @@ export async function runFxSync(): Promise<void> {
 
         logger.info({ pair: `${currency.code} -> XAF`, rate: rateToXaf }, 'FX Synchronization: rate updated');
         successCount++;
+        fxSyncCounter.inc({ currency: currency.code, result: 'success' });
       } catch (error) {
         logger.error({ err: error, currency: currency.code }, 'FX Synchronization: failed after all retries');
         failureCount++;
         failedCurrencies.push(currency.code);
+        fxSyncCounter.inc({ currency: currency.code, result: 'failure' });
       }
     }
 
