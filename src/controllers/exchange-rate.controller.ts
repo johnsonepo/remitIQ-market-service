@@ -4,7 +4,7 @@ import { currencyRepository } from '../repositories/currency.repository.js';
 import { exchangeRateRepository } from '../repositories/exchange-rate.repository.js';
 import { ApiResponse } from '../utils/api-response.js';
 import { ApiError } from '../utils/api-error.js';
-import type { Currency } from '../generated/prisma/client.js';
+import type { Currency } from '../../generated/prisma/client.js';
 
 /**
  * Resolves a currency code (e.g. "usd") to its Currency record,
@@ -42,7 +42,7 @@ export const exchangeRateController = {
    *
    * Example: GET /api/v1/rates/USD/XAF
    */
-  async getPair(req: Request, res: Response): Promise<void> {
+  async getPair(req: Request<{ base: string; quote: string }>, res: Response): Promise<void> {
     const { base, quote } = req.params;
 
     if (!base || !quote) {
@@ -71,7 +71,7 @@ export const exchangeRateController = {
    *
    * Example: GET /api/v1/rates/USD/XAF/latest
    */
-  async getLatestForPair(req: Request, res: Response): Promise<void> {
+  async getLatestForPair(req: Request<{ base: string; quote: string }>, res: Response): Promise<void> {
     const { base, quote } = req.params;
 
     if (!base || !quote) {

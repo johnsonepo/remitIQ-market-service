@@ -30,7 +30,7 @@ export const providerController = {
    * Fetches a single provider by its unique name.
    * Throws a 404 ApiError if no matching provider exists.
    */
-  async getByName(req: Request, res: Response): Promise<void> {
+  async getByName(req: Request<{ name: string }>, res: Response): Promise<void> {
     const { name } = req.params;
 
     const provider = await providerRepository.findByName(name);

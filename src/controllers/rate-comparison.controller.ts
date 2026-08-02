@@ -16,7 +16,7 @@ export const rateComparisonController = {
    * the official API rate against the latest community-submitted
    * rate, per findBestRate.
    */
-  async getBest(req: Request, res: Response): Promise<void> {
+  async getBest(req: Request<{ base: string; quote: string }>, res: Response): Promise<void> {
     const { base, quote } = req.params;
 
     const result = await findBestRate(base, quote);

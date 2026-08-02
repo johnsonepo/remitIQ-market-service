@@ -30,7 +30,7 @@ export const currencyController = {
    * Fetches a single currency by its ISO 4217 code (e.g. "USD").
    * Throws a 404 ApiError if no matching currency exists.
    */
-  async getByCode(req: Request, res: Response): Promise<void> {
+  async getByCode(req: Request<{ code: string }>, res: Response): Promise<void> {
     const { code } = req.params;
 
     const currency = await currencyRepository.findByCode(code.toUpperCase());

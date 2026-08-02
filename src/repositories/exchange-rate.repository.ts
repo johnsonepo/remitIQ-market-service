@@ -1,6 +1,6 @@
 import { prisma } from '../clients/prisma.client.js';
 import { BaseRepository } from './base.repository.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import type { Prisma } from '../../generated/prisma/client.js';
 
 // Define a type for ExchangeRate that includes the related models fetched via `include`
 export type ExchangeRateWithDetails = Prisma.ExchangeRateGetPayload<{

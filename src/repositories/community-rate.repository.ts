@@ -1,6 +1,6 @@
 import { prisma } from '../clients/prisma.client.js';
 import { BaseRepository } from './base.repository.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import type { Prisma } from '../../generated/prisma/client.js';
 
 // Define a type for CommunityRate that includes the related currency models fetched via `include`
 export type CommunityRateWithDetails = Prisma.CommunityRateGetPayload<{

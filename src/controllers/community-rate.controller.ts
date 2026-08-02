@@ -25,7 +25,7 @@ export const communityRateController = {
    * Lists recent community-submitted rates for a currency pair
    * (default: last 30 days), most recent first.
    */
-  async getPair(req: Request, res: Response): Promise<void> {
+  async getPair(req: Request<{ base: string; quote: string }>, res: Response): Promise<void> {
     const { base, quote } = req.params;
 
     if (!base || !quote) {
