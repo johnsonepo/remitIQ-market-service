@@ -1,627 +1,102 @@
 # RemitIQ Market Service
 
-> **Market Intelligence Microservice for the RemitIQ Ecosystem**
->
-> **Version:** 1.0.0
->
-> **Status:** Planning
+> Market Intelligence Microservice for the [RemitIQ Ecosystem](../README.md)
 
----
+[![CI](https://github.com/johnsonepo/remitIQ-market-service/actions/workflows/ci.yml/badge.svg)](https://github.com/johnsonepo/remitIQ-market-service/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-# Overview
+## What is this?
 
-The **RemitIQ Market Service** is responsible for collecting, storing, analyzing, and exposing foreign exchange market data used throughout the RemitIQ ecosystem.
+The Market Service owns everything related to currency exchange rate intelligence for RemitIQ:
 
-This service is designed as an independent REST API that provides reliable market intelligence to other applications such as the Web Dashboard and Mobile App.
+- **Exchange rates** — official rates fetched daily from an external FX API
+- **Community rates** — user-submitted parallel/street-market rates (e.g. informal exchanges), which often diverge meaningfully from official rates
+- **Best rate comparison** — surfaces whichever source (official or community) is more favorable for a given currency pair
+- **Historical rates** — time-series snapshots for trend analysis
+- **Exchange rate alerts** — user-defined thresholds that trigger when crossed
 
-It is one of the core backend services within the RemitIQ ecosystem and owns all exchange-rate related data.
+This service **does not** move money, manage users, or handle authentication — see [Architecture](./docs/ARCHITECTURE.md) for the full data-ownership boundaries.
 
----
+## Tech Stack
 
-# Purpose
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js 22, TypeScript |
+| Framework | Express 5 |
+| ORM | Prisma 7 |
+| Database | PostgreSQL 16 |
+| Validation | Zod |
+| Testing | Vitest, Supertest |
+| Scheduling | node-cron |
+| Metrics | prom-client (Prometheus) |
+| Containerization | Docker (multi-stage) |
+| CI/CD | GitHub Actions |
 
-The purpose of this service is to help users make better remittance decisions by providing accurate exchange rate information and market insights.
+## Quick Start
 
-Rather than moving money, this service provides intelligence that answers questions such as:
+**Prerequisites:** Docker and Docker Compose.
 
-- What is the current exchange rate?
-- Is today a good day to send money?
-- Has the rate improved over the last week?
-- When should users receive exchange rate alerts?
-- What are historical trends?
+```bash
+# 1. Clone and enter the repo
+git clone https://github.com/johnsonepo/remitIQ-market-service.git
+cd remitIQ-market-service
 
----
+# 2. Copy the example env file and fill in your values
+cp .env.example .env
 
-# Responsibilities
+# 3. Start the stack (Express API + PostgreSQL)
+docker compose up -d --build
 
-This service is responsible for:
+# 4. Apply database migrations
+docker compose exec market-service npx prisma migrate deploy
 
-- Collecting exchange rates from external providers
-- Storing historical exchange rates
-- Maintaining supported currencies
-- Calculating exchange rate trends
-- Processing exchange rate alerts
-- Providing market-related REST APIs
-- Supplying market data to other RemitIQ services
+# 5. Seed reference data (currencies, providers, sample rates)
+docker compose exec market-service npm run prisma:seed
 
----
-
-# Out of Scope
-
-This service **does not** manage:
-
-- User accounts
-- Authentication
-- Household management
-- Budgets
-- Remittance transactions
-- Analytics based on household spending
-- Payment processing
-- Money transfers
-
-Those responsibilities belong to other services within the ecosystem.
-
----
-
-# Architecture
-
-```text
-                   External FX Provider
-                           │
-                           ▼
-                 RemitIQ Market Service
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-          ▼                ▼                ▼
-     PostgreSQL      Trend Engine     Alert Engine
-          │
-          ▼
-       REST API
-          │
-     ┌────┴─────┐
-     ▼          ▼
- Web Client   Mobile Client
+# 6. Confirm it's running
+curl http://localhost:4001/health
 ```
 
-The Market Service is completely independent.
+You should see:
+```json
+{"status":"ok","service":"remitIQ-market-service","version":"1.0.0"}
+```
 
-It owns its own database and communicates only through HTTP APIs.
+## Documentation
 
----
+- **[API Reference](./docs/API.md)** — every endpoint, request/response shapes, error formats
+- **[Architecture](./docs/ARCHITECTURE.md)** — module structure, data model, key design decisions
+- **[Development Guide](./docs/DEVELOPMENT.md)** — local setup, testing, common workflows, troubleshooting
+- **[Deployment Guide](./docs/DEPLOYMENT.md)** — Docker, environment variables, CI/CD
 
-# Technology Stack
 
-| Layer            | Technology     |
-| ---------------- | -------------- |
-| Runtime          | Node.js        |
-| Language         | TypeScript     |
-| Framework        | Express.js     |
-| ORM              | Prisma         |
-| Database         | PostgreSQL     |
-| Validation       | Zod            |
-| Logging          | Pino           |
-| HTTP Client      | Axios          |
-| Scheduler        | node-cron      |
-| Containerization | Docker         |
-| CI/CD            | GitHub Actions |
-
----
-
-# Why These Technologies?
-
-## Node.js
-
-Provides excellent performance for I/O-heavy applications such as external API integrations.
-
----
-
-## Express.js
-
-A lightweight framework that gives complete control over REST API design.
-
----
-
-## TypeScript
-
-Improves maintainability through static typing and better developer tooling.
-
----
-
-## Prisma
-
-Provides a modern, type-safe ORM with excellent migration support.
-
----
-
-## PostgreSQL
-
-Reliable relational database capable of efficiently storing historical financial data.
-
----
-
-## Docker
-
-Ensures identical development, testing, and production environments.
-
----
-
-## Pino
-
-Fast, structured logging suitable for production systems.
-
----
-
-## Axios
-
-Simple and reliable HTTP client for consuming external exchange rate APIs.
-
----
-
-## Zod
-
-Provides runtime validation and type inference for request payloads.
-
----
-
-# High-Level Features
-
-## Currency Management
-
-Maintain supported currencies.
-
-Examples:
-
-- USD
-- EUR
-- GBP
-- XAF
-
----
-
-## Exchange Rate Collection
-
-Retrieve exchange rates from external providers on a scheduled basis.
-
----
-
-## Historical Data
-
-Maintain historical exchange rates for trend analysis.
-
----
-
-## Trend Analysis
-
-Calculate:
-
-- Daily trends
-- Weekly trends
-- Monthly trends
-- Percentage changes
-
----
-
-## Exchange Rate Alerts
-
-Evaluate alert rules.
-
-Example:
-
-Notify user when
-
-USD/XAF ≥ 650
-
----
-
-## Public REST API
-
-Expose exchange rate data to:
-
-- Web application
-- Mobile application
-- Household Service
-
----
-
-# Project Structure
-
-```text
-remitIQ-market-service/
-
-docs/
+## Project Structure
 
 src/
-
-tests/
+├── app.ts # Express app: middleware, routes, error handling
+├── server.ts # Entry point: starts the HTTP server + scheduled jobs
+├── clients/ # External service clients (Prisma, ExchangeRate-API)
+├── config/ # Environment validation, app/database/logger config
+├── controllers/ # Request handlers per resource
+├── jobs/ # Scheduled background jobs (FX sync)
+├── middlewares/ # Express middleware (errors, validation, metrics, logging)
+├── repositories/ # Data access layer, one per Prisma model
+├── routes/ # Route definitions, one file per resource
+├── services/ # Business logic that spans multiple repositories
+├── utils/ # Shared utilities (ApiError, ApiResponse, asyncHandler)
+└── validators/ # Zod schemas for request validation
 
 prisma/
+├── schema.prisma # Database schema
+├── migrations/ # Version-controlled schema migrations
+└── seeders/ # Seed data scripts
 
-.github/
+tests/
+├── unit/ # Isolated logic tests (mocked dependencies)
+├── integration/ # Repository tests against a real test database
+└── api/ # Full HTTP request/response tests
 
-Dockerfile
 
-docker-compose.yml
+## License
 
-.env.example
-
-README.md
-
-LICENSE
-
-package.json
-
-tsconfig.json
-```
-
-The project follows a modular architecture where every layer has a single responsibility.
-
----
-
-# Planned Source Structure
-
-```text
-src/
-
-config/
-
-controllers/
-
-services/
-
-repositories/
-
-routes/
-
-middlewares/
-
-validators/
-
-clients/
-
-jobs/
-
-types/
-
-utils/
-
-constants/
-
-app.ts
-
-server.ts
-```
-
-This structure keeps business logic organized and maintainable.
-
----
-
-# Database Ownership
-
-This service owns its own PostgreSQL database.
-
-No other service may directly access its tables.
-
-Other services must use the public REST API.
-
----
-
-# Planned Database Models
-
-The initial models include:
-
-- Currency
-- ExchangeRate
-- RateHistory
-- AlertRule
-- AlertEvent
-
-Additional models may be introduced as the application evolves.
-
----
-
-# API Design
-
-The API follows REST principles.
-
-Example base URL:
-
-```
-/api/v1
-```
-
-Example endpoints:
-
-```
-GET /currencies
-
-GET /rates/latest
-
-GET /rates/history
-
-GET /rates/trends
-
-POST /alerts
-
-PUT /alerts/:id
-
-DELETE /alerts/:id
-
-GET /alerts
-```
-
-API versioning ensures backward compatibility for future releases.
-
----
-
-# Communication
-
-The Market Service communicates with:
-
-## External Services
-
-Exchange rate providers through HTTPS.
-
-## Internal Services
-
-Household Service
-
-Web Application
-
-Mobile Application
-
-Communication format:
-
-- HTTPS
-- JSON
-- REST
-
----
-
-# Authentication
-
-The Market Service does not manage users.
-
-Authentication is delegated to the Household Service.
-
-Clients authenticate using JWTs issued by the Household Service.
-
-The Market Service validates incoming tokens before serving protected resources.
-
----
-
-# Environment Configuration
-
-Configuration is managed through environment variables.
-
-Sensitive information is never committed to Git.
-
-Developers copy:
-
-```
-.env.example
-```
-
-to
-
-```
-.env
-```
-
-before running the application.
-
----
-
-# Docker
-
-Docker is used to provide a consistent execution environment.
-
-Every developer runs the same software versions regardless of operating system.
-
-The application can be started locally using Docker Compose or directly with Node.js during development.
-
----
-
-# Logging
-
-The application uses structured logging.
-
-Logs are intended to be compatible with centralized logging solutions such as Loki.
-
-Logging levels include:
-
-- info
-- warn
-- error
-- debug
-
----
-
-# Error Handling
-
-A centralized error handler will ensure consistent API responses.
-
-Errors will include:
-
-- HTTP status code
-- Error message
-- Validation details (when applicable)
-- Correlation ID (future enhancement)
-
----
-
-# Security
-
-The service will follow security best practices including:
-
-- Helmet security headers
-- CORS configuration
-- Request validation
-- Environment-based configuration
-- Parameterized database queries
-- Secure logging
-- Rate limiting (future enhancement)
-
----
-
-# Testing Strategy
-
-Testing will include:
-
-- Unit tests
-- Integration tests
-- API endpoint tests
-
-Automated tests will run in GitHub Actions before deployment.
-
----
-
-# Development Workflow
-
-Every feature follows the same lifecycle.
-
-```
-Requirement
-
-↓
-
-Design
-
-↓
-
-Implementation
-
-↓
-
-Testing
-
-↓
-
-Code Review
-
-↓
-
-Merge
-
-↓
-
-Deployment
-```
-
----
-
-# CI/CD
-
-Every push triggers automated quality checks.
-
-Pipeline stages:
-
-1. Install dependencies
-2. Lint
-3. Type check
-4. Run tests
-5. Build application
-6. Build Docker image
-7. Deploy (production branches only)
-
----
-
-# Deployment
-
-The service is designed to run on:
-
-- Docker
-- VPS
-- AWS
-- Railway
-- Render
-- Azure
-- Google Cloud
-
-The deployment platform is independent of the application architecture.
-
----
-
-# Development Roadmap
-
-## Phase 1
-
-Project initialization
-
-Development environment
-
-Docker
-
-Prisma
-
-Database
-
----
-
-## Phase 2
-
-Currency management
-
-Exchange rate collection
-
-Historical storage
-
----
-
-## Phase 3
-
-Trend analysis
-
-Alert engine
-
-Scheduled jobs
-
----
-
-## Phase 4
-
-REST API
-
-Validation
-
-Testing
-
----
-
-## Phase 5
-
-Production deployment
-
-Monitoring
-
-Performance optimization
-
----
-
-# Contributing
-
-Before contributing:
-
-- Follow the coding standards.
-- Write tests for new functionality.
-- Update documentation when necessary.
-- Ensure linting and tests pass before submitting changes.
-
----
-
-# License
-
-This project is licensed under the MIT License.
-
----
-
-# Relationship to the RemitIQ Ecosystem
-
-The Market Service is one of four independent applications within the RemitIQ ecosystem.
-
-- **remitIQ-market-service** — Exchange rates, trends, alerts.
-- **remitIQ-household-service** — Authentication, households, budgets, remittance records.
-- **remitIQ-web** — Web dashboard consuming backend APIs.
-- **remitIQ-mobile** — Mobile application consuming backend APIs.
-
-Each application is independently developed, versioned, deployed, and documented. Communication occurs exclusively through versioned REST APIs, ensuring loose coupling and allowing each service to evolve without requiring direct access to another service's codebase or database.
+MIT — see [LICENSE](./LICENSE).
